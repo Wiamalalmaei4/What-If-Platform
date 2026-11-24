@@ -14,50 +14,56 @@ st.set_page_config(
 )
 
 
+
 # -------------------------
-# BRAND IDENTITY & DESIGN
+# DARK BRAND IDENTITY
 # -------------------------
 
 st.markdown("""
 <style>
 
-/* Main background */
+/* Main application */
 .stApp {
-    background-color: #F5F7FA;
-    color: #24364B;
+    background: #101D30;
+    color: #F3F6FA;
 }
 
-/* Main content */
+/* Main layout */
 .block-container {
+    max-width: 1200px;
     padding-top: 2rem;
     padding-bottom: 3rem;
-    max-width: 1200px;
 }
 
 /* Typography */
 html, body, [class*="css"] {
-    font-family: "Arial", sans-serif;
+    font-family: Arial, sans-serif;
 }
 
-h1, h2, h3 {
-    color: #142B45 !important;
+h1, h2, h3, h4 {
+    color: #F3F6FA !important;
     font-weight: 700 !important;
+}
+
+p, label, .stMarkdown {
+    color: #D5DFEA;
 }
 
 /* Sidebar */
 [data-testid="stSidebar"] {
-    background-color: #142B45;
+    background: #0B1728;
+    border-right: 1px solid #263B52;
 }
 
 [data-testid="stSidebar"] * {
-    color: #FFFFFF !important;
+    color: #EAF2F8;
 }
 
 [data-testid="stSidebar"] [role="radiogroup"] label {
-    background-color: rgba(255,255,255,0.06);
-    border-radius: 8px;
+    background: #172A40;
+    border-radius: 9px;
     padding: 10px;
-    margin-bottom: 5px;
+    margin-bottom: 7px;
 }
 
 /* Buttons */
@@ -65,41 +71,52 @@ h1, h2, h3 {
 .stFormSubmitButton button {
     border-radius: 9px;
     min-height: 45px;
-    font-weight: 600;
-    border: 1px solid #16A6A0;
+    font-weight: 700;
+    border: 1px solid #24C6B5;
     transition: 0.2s;
 }
 
 .stButton button[kind="primary"],
 .stFormSubmitButton button[kind="primary"] {
-    background-color: #16A6A0;
-    color: white;
+    background: #24C6B5;
+    color: #101D30;
 }
 
-/* Metrics */
+.stButton button:hover,
+.stFormSubmitButton button:hover {
+    border-color: #64E4D5;
+    color: #FFFFFF;
+}
+
+/* Metric cards */
 [data-testid="stMetric"] {
-    background-color: #FFFFFF;
-    border: 1px solid #E2E8F0;
+    background: #172A40;
+    border: 1px solid #2A4058;
     padding: 18px;
     border-radius: 12px;
 }
 
-/* Input fields */
+[data-testid="stMetricLabel"] {
+    color: #A8B9CC !important;
+}
+
+[data-testid="stMetricValue"] {
+    color: #24C6B5 !important;
+}
+
+/* Input areas */
 [data-testid="stTextInput"],
 [data-testid="stNumberInput"],
-[data-testid="stSelectbox"] {
-    border-radius: 8px;
+[data-testid="stSelectbox"],
+[data-testid="stDataEditor"] {
+    border-radius: 9px;
 }
 
-/* Data tables */
-[data-testid="stDataFrame"] {
-    background-color: #FFFFFF;
+/* Expanders */
+[data-testid="stExpander"] {
+    background: #172A40;
+    border: 1px solid #2A4058;
     border-radius: 10px;
-}
-
-/* Dividers */
-hr {
-    border-color: #E2E8F0;
 }
 
 /* Alerts */
@@ -107,13 +124,18 @@ hr {
     border-radius: 10px;
 }
 
-/* Footer */
+/* Dividers */
+hr {
+    border-color: #2A4058;
+}
+
+/* Brand footer */
 .brand-footer {
-    color: #718096;
-    font-size: 12px;
     text-align: center;
-    padding: 20px;
-    letter-spacing: 1px;
+    color: #8295AA;
+    font-size: 12px;
+    padding: 25px;
+    letter-spacing: 1.5px;
 }
 
 </style>
@@ -156,48 +178,71 @@ if "analysis" not in st.session_state:
     st.session_state.analysis = None
 
 # -------------------------
-# HEADER
-# -------------------------
-
-# -------------------------
-# HEADER
+# BRAND HEADER
 # -------------------------
 
 logo_col, tagline_col = st.columns([2, 1])
 
 with logo_col:
+
     st.markdown("""
-    <div style="padding: 8px 0;">
-        <span style="
-            font-size: 36px;
-            font-weight: 800;
-            color: #142B45;
-            letter-spacing: -1px;">
-            WHAT IF<span style="color:#16A6A0;">?</span>
-        </span>
+    <div style="
+        display:flex;
+        align-items:center;
+        gap:13px;
+        padding:8px 0 15px 0;">
+
         <div style="
-            color: #718096;
-            font-size: 11px;
-            letter-spacing: 2px;
-            font-weight: 600;">
-            ENGINEERING DECISION PLATFORM
+            width:52px;
+            height:52px;
+            background:#1B344B;
+            border:1px solid #24C6B5;
+            border-radius:13px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:28px;">
+            💡
+        </div>
+
+        <div>
+            <div style="
+                color:#F3F6FA;
+                font-size:34px;
+                font-weight:800;
+                letter-spacing:-1px;">
+                WHAT IF<span style="color:#24C6B5;">?</span>
+            </div>
+
+            <div style="
+                color:#8295AA;
+                font-size:10px;
+                letter-spacing:2px;
+                font-weight:600;">
+                ENGINEERING DECISION PLATFORM
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 with tagline_col:
+
     st.markdown("""
     <div style="
         text-align:right;
-        padding-top:15px;
-        color:#16A6A0;
-        font-weight:600;
-        font-size:14px;">
-        SIMULATE. COMPARE. DECIDE.
+        padding-top:20px;
+        color:#24C6B5;
+        font-size:13px;
+        font-weight:700;
+        letter-spacing:1px;">
+        SIMULATE.<br>
+        COMPARE.<br>
+        DECIDE.
     </div>
     """, unsafe_allow_html=True)
 
 st.divider()
+
 
 # -------------------------
 # NAVIGATION
@@ -577,15 +622,11 @@ elif page == "Results":
 # FOOTER
 # -------------------------
 
-# -------------------------
-# FOOTER
-# -------------------------
-
 st.markdown("""
 <div class="brand-footer">
-    WHAT IF? &nbsp; | &nbsp; ENGINEERING DECISION PLATFORM
-    <br>
+    💡 WHAT IF? &nbsp; | &nbsp;
+    ENGINEERING DECISION PLATFORM
+    <br><br>
     SIMULATE. COMPARE. DECIDE.
 </div>
 """, unsafe_allow_html=True)
-
