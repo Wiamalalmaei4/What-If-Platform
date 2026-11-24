@@ -3,6 +3,143 @@ import streamlit as st
 import pandas as pd
 import itertools
 
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+
+# -------------------------
+# PDF REPORT GENERATOR
+# -------------------------
+
+def create_pdf_report(analysis):
+
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=35,
+        leftMargin=35,
+        topMargin=40,
+        bottomMargin=40
+    )
+
+    styles = getSampleStyleSheet()
+    story = []
+
+    story.append(Paragraph(
+        "WHAT IF? - Analysis Report",
+        styles["Title"]
+    ))
+
+    story.append(Paragraph(
+        "Engineering Decision Support Platform",
+        styles["Normal"]
+    ))
+
+    story.append(Spacer(1, 20))
+
+    solutions = analysis["feasible"]
+    best = solutions[0]
+
+    summary_data = [
+        ["Analysis Summary", "Result"],
+        ["Allocations Tested", str(analysis["tested"])],
+        ["Feasible Solutions", str(len(solutions))],
+        ["Rejected Solutions", str(analysis["rejected"])],
+        ["Best Seat Utilization", f"{best['score']:.2f}%"]
+    ]
+
+    summary_table = Table(summary_data, colWidths=[250, 200])
+
+    summary_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#172A40")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("PADDING", (0, 0), (-1, -1), 8),
+    ]))
+
+    story.append(summary_table)
+    story.append(Spacer(1, 25))
+
+    story.append(Paragraph(
+        "Recommended Classroom Assignment",
+        styles["Heading2"]
+    ))
+
+    assignment_data = [
+        ["Lecture", "Day", "Start", "End", "Students", "Room"]
+    ]
+
+    for _, lecture in best["data"].iterrows():
+        assignment_data.append([
+            str(lecture["Lecture"]),
+            str(lecture["Day"]),
+            str(lecture["Start"]),
+            str(lecture["End"]),
+            str(lecture["Students"]),
+            str(lecture["Room"])
+        ])
+
+    assignment_table = Table(
+        assignment_data,
+        repeatRows=1
+    )
+
+    assignment_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#172A40")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("PADDING", (0, 0), (-1, -1), 6),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+    ]))
+
+    story.append(assignment_table)
+    story.append(Spacer(1, 25))
+
+    story.append(Paragraph(
+        "Top 5 Alternatives",
+        styles["Heading2"]
+    ))
+
+    alternatives_data = [
+        ["Rank", "Seat Utilization (%)"]
+    ]
+
+    for rank, solution in enumerate(solutions[:5], start=1):
+        alternatives_data.append([
+            str(rank),
+            f"{solution['score']:.2f}%"
+        ])
+
+    alternatives_table = Table(
+        alternatives_data,
+        colWidths=[150, 200]
+    )
+
+    alternatives_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#172A40")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("PADDING", (0, 0), (-1, -1), 8),
+    ]))
+
+    story.append(alternatives_table)
+    story.append(Spacer(1, 20))
+
+    story.append(Paragraph(
+        "The recommended solution satisfies classroom capacity "
+        "requirements and avoids overlapping lectures in the same room. "
+        "It achieved the highest seat utilization among feasible solutions.",
+        styles["Normal"]
+    ))
+
+    doc.build(story)
+
+    return buffer.getvalue()
+    
 # -------------------------
 # PAGE CONFIGURATION
 # -------------------------
@@ -617,7 +754,14 @@ elif page == "Results":
             "The analysis uses the entered data and evaluates "
             "all possible classroom assignments."
         )
-
+        st.download_button(
+            label="Download PDF Report",
+            data=create_pdf_report(analysis),
+            file_name="WHAT_IF_Analysis_Report.pdf",
+            mime="application/pdf",
+            type="primary",
+            use_container_width=True
+        )
 # -------------------------
 # FOOTER
 # -------------------------
