@@ -313,7 +313,7 @@ if "lectures" not in st.session_state:
 
 if "analysis" not in st.session_state:
     st.session_state.analysis = None
-
+    
 # -------------------------
 # BRAND HEADER
 # -------------------------
@@ -321,65 +321,22 @@ if "analysis" not in st.session_state:
 logo_col, tagline_col = st.columns([2, 1])
 
 with logo_col:
-
-    st.markdown("""
-    <div style="
-        display:flex;
-        align-items:center;
-        gap:13px;
-        padding:8px 0 15px 0;">
-
-        <div style="
-            width:52px;
-            height:52px;
-            background:#1B344B;
-            border:1px solid #24C6B5;
-            border-radius:13px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            font-size:28px;">
-            💡
-        </div>
-
-        <div>
-            <div style="
-                color:#F3F6FA;
-                font-size:34px;
-                font-weight:800;
-                letter-spacing:-1px;">
-                WHAT IF<span style="color:#24C6B5;">?</span>
-            </div>
-
-            <div style="
-                color:#8295AA;
-                font-size:10px;
-                letter-spacing:2px;
-                font-weight:600;">
-                ENGINEERING DECISION PLATFORM
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("# 💡 WHAT IF?")
+    st.caption("ENGINEERING DECISION PLATFORM")
 
 with tagline_col:
-
-    st.markdown("""
-    <div style="
-        text-align:right;
-        padding-top:20px;
-        color:#24C6B5;
-        font-size:13px;
-        font-weight:700;
-        letter-spacing:1px;">
+    st.markdown(
+        """
+        <div style="text-align:right; color:#24C6B5; font-weight:bold;">
         SIMULATE.<br>
         COMPARE.<br>
         DECIDE.
-    </div>
-    """, unsafe_allow_html=True)
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-st.divider()
-
+st.divider() 
 
 # -------------------------
 # NAVIGATION
