@@ -9,25 +9,24 @@ st.set_page_config(
 )
 
 st.title("💡 WHAT IF?")
-st.caption("Engineering Decision Support & Simulation Platform")
+st.caption("Engineering Decision Support Platform")
 
 st.markdown(
-    "Test your scenarios, analyze their performance, "
-    "and discover better operational decisions."
+    "### Scenario Lab\n"
+    "Create alternatives, simulate their performance, "
+    "and compare operational decisions."
 )
 
-st.divider()
-
-# -----------------------------
-# DEMO DATA
-# -----------------------------
+# -------------------------
+# SAMPLE DATA
+# -------------------------
 
 rooms_data = pd.DataFrame({
     "Room": ["R101", "R102", "R103"],
     "Capacity": [30, 50, 40]
 })
 
-lectures_data = pd.DataFrame({
+base_lectures = pd.DataFrame({
     "Lecture": [
         "Industrial Engineering",
         "Statistics",
@@ -44,46 +43,84 @@ lectures_data = pd.DataFrame({
     "Room": ["R101", "R102", "R101", "R103", "R103"]
 })
 
-# -----------------------------
-# EDITABLE INPUTS
-# -----------------------------
+scenario_b = base_lectures.copy()
+scenario_b["Room"] = ["R101", "R102", "R102", "R103", "R102"]
 
-st.header("1. Scenario Setup")
+scenario_c = base_lectures.copy()
+scenario_c["Room"] = ["R101", "R102", "R103", "R101", "R102"]
 
-scenario_name = st.text_input(
-    "Scenario Name",
-    "Scenario 1 - Current Allocation"
-)
+# -------------------------
+# SESSION STATE
+# -------------------------
 
-st.subheader("Available Classrooms")
+if "scenario_data" not in st.session_state:
+
+    st.session_state.scenario_data = {
+        "Scenario A - Current": base_lectures.copy(),
+        "Scenario B - Alternative": scenario_b.copy(),
+        "Scenario C - Proposed": scenario_c.copy()
+    }
+
+if "rooms_data" not in st.session_state:
+    st.session_state.rooms_data = rooms_data.copy()
+
+# -------------------------
+# INPUT DATA
+# -------------------------
+
+st.header("1. Resource Setup")
 
 rooms = st.data_editor(
-    rooms_data,
+    st.session_state.rooms_data,
     num_rows="dynamic",
-    use_container_width=True,
-    key="rooms_table"
+    key="rooms_editor",
+    use_container_width=True
 )
 
-st.subheader("Lecture Schedule")
+st.session_state.rooms_data = rooms.copy()
 
-lectures = st.data_editor(
-    lectures_data,
-    num_rows="dynamic",
-    use_container_width=True,
-    key="lectures_table"
+st.divider()
+
+st.header("2. Build Your Scenarios")
+
+st.write(
+    "Edit the classroom assignments, lecture times, "
+    "or student numbers to test different alternatives."
 )
 
-# -----------------------------
+scenario_names = list(st.session_state.scenario_data.keys())
+
+edited_scenarios = {}
+
+for name in scenario_names:
+
+    with st.expander(name, expanded=(name == scenario_names[0])):
+
+        edited = st.data_editor(
+            st.session_state.scenario_data[name],
+            num_rows="dynamic",
+            key=f"editor_{name}",
+            use_container_width=True
+        )
+
+        edited_scenarios[name] = edited.copy()
+
+st.session_state.scenario_data = edited_scenarios
+
+# -------------------------
 # SIMULATION ENGINE
-# -----------------------------
+# -------------------------
 
-if st.button("▶ Run Simulation", type="primary"):
+def evaluate_scenario(lectures, rooms):
 
-    errors = []
-    capacity_issues = []
     conflicts = []
+    capacity_issues = []
+    data_errors = []
 
-    # Check room capacities
+    total_hours = 0
+    total_student_hours = 0
+    total_capacity_hours = 0
+
     for _, lecture in lectures.iterrows():
 
         room_match = rooms[
@@ -91,22 +128,50 @@ if st.button("▶ Run Simulation", type="primary"):
         ]
 
         if room_match.empty:
-            errors.append(
-                f"{lecture['Lecture']}: Room not found."
+            data_errors.append(
+                f"{lecture['Lecture']}: "
+                f"Room {lecture['Room']} not found."
             )
             continue
 
         capacity = room_match.iloc[0]["Capacity"]
 
+        duration = lecture["End"] - lecture["Start"]
+
+        if duration <= 0:
+            data_errors.append(
+                f"{lecture['Lecture']}: "
+                "Invalid lecture duration."
+            )
+            continue
+
+        if lecture["Students"] < 0:
+            data_errors.append(
+                f"{lecture['Lecture']}: "
+                "Invalid student count."
+            )
+            continue
+
+        total_hours += duration
+
+        total_student_hours += (
+            lecture["Students"] * duration
+        )
+
+        total_capacity_hours += (
+            capacity * duration
+        )
+
         if lecture["Students"] > capacity:
+
             capacity_issues.append(
-                f"{lecture['Lecture']} - "
+                f"{lecture['Lecture']} — "
                 f"{lecture['Room']}: "
                 f"{lecture['Students']} students, "
                 f"capacity {capacity}"
             )
 
-    # Check room scheduling conflicts
+    # Detect room conflicts
     for i in range(len(lectures)):
 
         for j in range(i + 1, len(lectures)):
@@ -125,156 +190,220 @@ if st.button("▶ Run Simulation", type="primary"):
             if same_room and same_day and overlap:
 
                 conflicts.append(
-                    f"{a['Room']} on {a['Day']}: "
-                    f"{a['Lecture']} overlaps with "
-                    f"{b['Lecture']}"
+                    f"{a['Room']} — {a['Day']}: "
+                    f"{a['Lecture']} / {b['Lecture']}"
                 )
 
-    # Calculate performance metrics
-    total_lectures = len(lectures)
+    # KPIs
+    available_room_hours = len(rooms) * 8 * 5
 
-    scheduled_hours = (
-        lectures["End"] - lectures["Start"]
-    ).sum()
-
-    total_room_hours = len(rooms) * 8 * 5
-
-    utilization = (
-        scheduled_hours / total_room_hours * 100
-        if total_room_hours > 0 else 0
+    room_utilization = (
+        total_hours / available_room_hours * 100
+        if available_room_hours > 0 else 0
     )
 
-    total_students = lectures["Students"].sum()
-
-    seats_available = 0
-
-    for _, lecture in lectures.iterrows():
-
-        room_match = rooms[
-            rooms["Room"] == lecture["Room"]
-        ]
-
-        if not room_match.empty:
-
-            seats_available += (
-                room_match.iloc[0]["Capacity"]
-            )
-
-    unused_seats = max(
-        seats_available - total_students, 0
+    seat_utilization = (
+        total_student_hours / total_capacity_hours * 100
+        if total_capacity_hours > 0 else 0
     )
 
     feasible = (
-        len(errors) == 0
-        and len(capacity_issues) == 0
+        len(capacity_issues) == 0
         and len(conflicts) == 0
+        and len(data_errors) == 0
     )
 
-    # -----------------------------
+    return {
+        "feasible": feasible,
+        "room_utilization": room_utilization,
+        "seat_utilization": seat_utilization,
+        "conflicts": conflicts,
+        "capacity_issues": capacity_issues,
+        "data_errors": data_errors,
+        "total_hours": total_hours
+    }
+
+# -------------------------
+# DECISION WEIGHTS
+# -------------------------
+
+st.divider()
+st.header("3. Decision Criteria")
+
+st.write(
+    "Adjust the importance of each criterion. "
+    "Only feasible scenarios can receive a recommendation."
+)
+
+weight_room = st.slider(
+    "Room Utilization Importance",
+    min_value=0,
+    max_value=100,
+    value=50
+)
+
+weight_seat = st.slider(
+    "Seat Utilization Importance",
+    min_value=0,
+    max_value=100,
+    value=50
+)
+
+weight_total = weight_room + weight_seat
+
+if weight_total == 0:
+    st.warning("At least one criterion must have a weight.")
+
+# -------------------------
+# RUN ALL SCENARIOS
+# -------------------------
+
+if st.button("▶ Run & Compare Scenarios", type="primary"):
+
+    results = {}
+
+    for name, data in st.session_state.scenario_data.items():
+
+        results[name] = evaluate_scenario(
+            data, st.session_state.rooms_data
+        )
+
+    # Calculate weighted scores for feasible scenarios
+    for name, result in results.items():
+
+        if result["feasible"] and weight_total > 0:
+
+            score = (
+                result["room_utilization"]
+                * weight_room
+                + result["seat_utilization"]
+                * weight_seat
+            ) / weight_total
+
+            result["score"] = score
+
+        else:
+            result["score"] = None
+
+    # -------------------------
     # RESULTS
-    # -----------------------------
+    # -------------------------
 
     st.divider()
-    st.header("2. Simulation Results")
+    st.header("4. Simulation Results")
 
-    col1, col2, col3 = st.columns(3)
+    result_rows = []
 
-    col1.metric(
-        "Room Utilization",
-        f"{utilization:.1f}%"
+    for name, result in results.items():
+
+        result_rows.append({
+            "Scenario": name,
+            "Feasible": (
+                "Yes" if result["feasible"] else "No"
+            ),
+            "Room Utilization (%)": round(
+                result["room_utilization"], 2
+            ),
+            "Seat Utilization (%)": round(
+                result["seat_utilization"], 2
+            ),
+            "Conflicts": len(result["conflicts"]),
+            "Capacity Issues": len(
+                result["capacity_issues"]
+            ),
+            "Score": (
+                round(result["score"], 2)
+                if result["score"] is not None
+                else "N/A"
+            )
+        })
+
+    results_df = pd.DataFrame(result_rows)
+
+    st.dataframe(
+        results_df,
+        use_container_width=True,
+        hide_index=True
     )
 
-    col2.metric(
-        "Capacity Violations",
-        len(capacity_issues)
+    # Detailed issues
+    for name, result in results.items():
+
+        if not result["feasible"]:
+
+            with st.expander(f"⚠ Issues in {name}"):
+
+                for issue in result["capacity_issues"]:
+                    st.write("Capacity:", issue)
+
+                for issue in result["conflicts"]:
+                    st.write("Conflict:", issue)
+
+                for issue in result["data_errors"]:
+                    st.write("Data:", issue)
+
+    # -------------------------
+    # COMPARISON CHARTS
+    # -------------------------
+
+    st.subheader("Scenario Comparison")
+
+    chart_df = results_df.set_index("Scenario")
+
+    st.bar_chart(
+        chart_df[
+            ["Room Utilization (%)", "Seat Utilization (%)"]
+        ]
     )
 
-    col3.metric(
-        "Schedule Conflicts",
-        len(conflicts)
-    )
+    # -------------------------
+    # RECOMMENDATION
+    # -------------------------
 
-    if feasible:
+    valid_results = {
+        name: result
+        for name, result in results.items()
+        if result["feasible"]
+        and result["score"] is not None
+    }
+
+    st.header("5. Final Decision")
+
+    if valid_results:
+
+        best_name = max(
+            valid_results,
+            key=lambda name: valid_results[name]["score"]
+        )
+
+        best = valid_results[best_name]
 
         st.success(
-            "Scenario Status: FEASIBLE ✓"
+            f"Recommended Scenario: {best_name}"
+        )
+
+        st.metric(
+            "Decision Score",
+            f"{best['score']:.2f}%"
         )
 
         st.write(
-            f"**{scenario_name}** passed all "
-            "basic scheduling checks."
+            "This scenario passed the feasibility checks "
+            "and achieved the highest weighted score "
+            "among the evaluated alternatives."
         )
 
     else:
 
         st.error(
-            "Scenario Status: NOT FEASIBLE"
+            "No feasible scenario is available. "
+            "Correct the constraints or input data "
+            "before making a recommendation."
         )
 
-    # Capacity warnings
-    if capacity_issues:
-
-        st.warning("Capacity Issues")
-
-        for issue in capacity_issues:
-            st.write("- " + issue)
-
-    # Scheduling conflicts
-    if conflicts:
-
-        st.warning("Scheduling Conflicts")
-
-        for conflict in conflicts:
-            st.write("- " + conflict)
-
-    # Missing rooms
-    if errors:
-
-        st.warning("Data Issues")
-
-        for error in errors:
-            st.write("- " + error)
-
-    # Additional metrics
-    st.subheader("3. Performance Analysis")
-
-    col1, col2, col3 = st.columns(3)
-
-    col1.metric(
-        "Total Lectures",
-        total_lectures
-    )
-
-    col2.metric(
-        "Scheduled Hours",
-        f"{scheduled_hours:.1f}"
-    )
-
-    col3.metric(
-        "Unused Seats",
-        unused_seats
-    )
-
-    # Charts
-    if not lectures.empty:
-
-        st.subheader("Students per Lecture")
-
-        chart_data = lectures[
-            ["Lecture", "Students"]
-        ].set_index("Lecture")
-
-        st.bar_chart(chart_data)
-
-        st.subheader("Room Allocation")
-
-        room_counts = lectures["Room"].value_counts()
-
-        st.bar_chart(room_counts)
-
     st.caption(
-        "Demo results are based on sample data "
-        "and simplified operating assumptions."
+        "Results are based on demo data and the "
+        "selected decision weights."
     )
 
 st.divider()
