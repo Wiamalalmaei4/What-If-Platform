@@ -411,3 +411,188 @@ st.divider()
 st.caption(
     "WHAT IF? | Simulate. Compare. Decide."
 )
+
+# -------------------------
+# AUTOMATIC SCENARIO GENERATOR
+# -------------------------
+
+import itertools
+
+st.divider()
+st.header("6. Auto Scenario Generator")
+
+st.write(
+    "Automatically generate classroom allocations, "
+    "evaluate feasibility, and rank the best alternatives."
+)
+
+if st.button("🚀 Generate Best Allocation", type="primary"):
+
+    rooms = st.session_state.rooms_data.copy()
+    lectures = base_lectures.copy()
+
+    room_names = rooms["Room"].tolist()
+
+    if len(room_names) == 0:
+
+        st.error("Please add at least one classroom.")
+
+    else:
+
+        total_combinations = len(room_names) ** len(lectures)
+
+        feasible_solutions = []
+        rejected_solutions = 0
+
+        progress = st.progress(0)
+
+        combinations = itertools.product(
+            room_names,
+            repeat=len(lectures)
+        )
+
+        for index, allocation in enumerate(combinations):
+
+            candidate = lectures.copy()
+            candidate["Room"] = list(allocation)
+
+            evaluation = evaluate_scenario(
+                candidate,
+                rooms
+            )
+
+            if evaluation["feasible"]:
+
+                score = (
+                    evaluation["room_utilization"] * weight_room
+                    + evaluation["seat_utilization"] * weight_seat
+                ) / weight_total if weight_total > 0 else 0
+
+                feasible_solutions.append({
+                    "score": score,
+                    "data": candidate.copy(),
+                    "evaluation": evaluation
+                })
+
+            else:
+
+                rejected_solutions += 1
+
+            progress.progress(
+                (index + 1) / total_combinations
+            )
+
+        progress.empty()
+
+        st.metric(
+            "Allocations Tested",
+            total_combinations
+        )
+
+        st.metric(
+            "Feasible Allocations",
+            len(feasible_solutions)
+        )
+
+        st.metric(
+            "Rejected Allocations",
+            rejected_solutions
+        )
+
+        if feasible_solutions:
+
+            feasible_solutions.sort(
+                key=lambda x: x["score"],
+                reverse=True
+            )
+
+            best_solution = feasible_solutions[0]
+
+            st.success(
+                "Best feasible allocation found successfully!"
+            )
+
+            st.subheader("🏆 Recommended Allocation")
+
+            st.metric(
+                "Best Decision Score",
+                f"{best_solution['score']:.2f}%"
+            )
+
+            st.dataframe(
+                best_solution["data"],
+                use_container_width=True,
+                hide_index=True
+            )
+
+            st.subheader("Top 5 Alternatives")
+
+            top_rows = []
+
+            for rank, solution in enumerate(
+                feasible_solutions[:5], start=1
+            ):
+
+                row = {
+                    "Rank": rank,
+                    "Score": round(solution["score"], 2),
+                    "Room Utilization (%)": round(
+                        solution["evaluation"]["room_utilization"], 2
+                    ),
+                    "Seat Utilization (%)": round(
+                        solution["evaluation"]["seat_utilization"], 2
+                    )
+                }
+
+                for i, lecture in enumerate(
+                    solution["data"]["Lecture"]
+                ):
+
+                    row[lecture] = solution["data"].iloc[i]["Room"]
+
+                top_rows.append(row)
+
+            top_df = pd.DataFrame(top_rows)
+
+            st.dataframe(
+                top_df,
+                use_container_width=True,
+                hide_index=True
+            )
+
+            st.subheader("Why was this allocation selected?")
+
+            st.write(
+                f"""
+                - It passed all feasibility checks.
+                - It was selected from {total_combinations} tested allocations.
+                - It achieved a score of {best_solution['score']:.2f}.
+                - It ranked first among the feasible alternatives
+                based on the selected decision weights.
+                """
+            )
+
+            st.subheader("Performance Comparison")
+
+            comparison = pd.DataFrame({
+                "Metric": [
+                    "Room Utilization",
+                    "Seat Utilization"
+                ],
+                "Value": [
+                    best_solution["evaluation"]["room_utilization"],
+                    best_solution["evaluation"]["seat_utilization"]
+                ]
+            })
+
+            st.bar_chart(
+                comparison.set_index("Metric")
+            )
+
+        else:
+
+            st.error(
+                "No feasible allocations found. "
+                "Check classroom capacities and lecture schedules."
+            )
+
