@@ -13,29 +13,112 @@ st.set_page_config(
     layout="wide"
 )
 
+
 # -------------------------
-# DESIGN
+# BRAND IDENTITY & DESIGN
 # -------------------------
 
 st.markdown("""
 <style>
-.main {
-    background-color: #F8FAFC;
+
+/* Main background */
+.stApp {
+    background-color: #F5F7FA;
+    color: #24364B;
 }
+
+/* Main content */
 .block-container {
     padding-top: 2rem;
-    max-width: 1150px;
+    padding-bottom: 3rem;
+    max-width: 1200px;
 }
+
+/* Typography */
+html, body, [class*="css"] {
+    font-family: "Arial", sans-serif;
+}
+
 h1, h2, h3 {
-    color: #172B4D;
+    color: #142B45 !important;
+    font-weight: 700 !important;
 }
-.stButton button {
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background-color: #142B45;
+}
+
+[data-testid="stSidebar"] * {
+    color: #FFFFFF !important;
+}
+
+[data-testid="stSidebar"] [role="radiogroup"] label {
+    background-color: rgba(255,255,255,0.06);
     border-radius: 8px;
-    font-weight: 600;
-    min-height: 45px;
+    padding: 10px;
+    margin-bottom: 5px;
 }
+
+/* Buttons */
+.stButton button,
+.stFormSubmitButton button {
+    border-radius: 9px;
+    min-height: 45px;
+    font-weight: 600;
+    border: 1px solid #16A6A0;
+    transition: 0.2s;
+}
+
+.stButton button[kind="primary"],
+.stFormSubmitButton button[kind="primary"] {
+    background-color: #16A6A0;
+    color: white;
+}
+
+/* Metrics */
+[data-testid="stMetric"] {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    padding: 18px;
+    border-radius: 12px;
+}
+
+/* Input fields */
+[data-testid="stTextInput"],
+[data-testid="stNumberInput"],
+[data-testid="stSelectbox"] {
+    border-radius: 8px;
+}
+
+/* Data tables */
+[data-testid="stDataFrame"] {
+    background-color: #FFFFFF;
+    border-radius: 10px;
+}
+
+/* Dividers */
+hr {
+    border-color: #E2E8F0;
+}
+
+/* Alerts */
+[data-testid="stAlert"] {
+    border-radius: 10px;
+}
+
+/* Footer */
+.brand-footer {
+    color: #718096;
+    font-size: 12px;
+    text-align: center;
+    padding: 20px;
+    letter-spacing: 1px;
+}
+
 </style>
 """, unsafe_allow_html=True)
+
 
 # -------------------------
 # SAMPLE DATA
@@ -76,12 +159,43 @@ if "analysis" not in st.session_state:
 # HEADER
 # -------------------------
 
-st.title("💡 WHAT IF?")
-st.caption("ENGINEERING DECISION SUPPORT PLATFORM")
+# -------------------------
+# HEADER
+# -------------------------
 
-st.markdown(
-    "Simulate. Compare. Decide."
-)
+logo_col, tagline_col = st.columns([2, 1])
+
+with logo_col:
+    st.markdown("""
+    <div style="padding: 8px 0;">
+        <span style="
+            font-size: 36px;
+            font-weight: 800;
+            color: #142B45;
+            letter-spacing: -1px;">
+            WHAT IF<span style="color:#16A6A0;">?</span>
+        </span>
+        <div style="
+            color: #718096;
+            font-size: 11px;
+            letter-spacing: 2px;
+            font-weight: 600;">
+            ENGINEERING DECISION PLATFORM
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with tagline_col:
+    st.markdown("""
+    <div style="
+        text-align:right;
+        padding-top:15px;
+        color:#16A6A0;
+        font-weight:600;
+        font-size:14px;">
+        SIMULATE. COMPARE. DECIDE.
+    </div>
+    """, unsafe_allow_html=True)
 
 st.divider()
 
@@ -463,8 +577,15 @@ elif page == "Results":
 # FOOTER
 # -------------------------
 
-st.divider()
+# -------------------------
+# FOOTER
+# -------------------------
 
-st.caption(
-    "WHAT IF? | Simulate. Compare. Decide."
-)
+st.markdown("""
+<div class="brand-footer">
+    WHAT IF? &nbsp; | &nbsp; ENGINEERING DECISION PLATFORM
+    <br>
+    SIMULATE. COMPARE. DECIDE.
+</div>
+""", unsafe_allow_html=True)
+
