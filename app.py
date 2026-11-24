@@ -317,12 +317,20 @@ if "analysis" not in st.session_state:
 # -------------------------
 # BRAND HEADER
 # -------------------------
-
-logo_col, tagline_col = st.columns([2, 1])
-
 with logo_col:
     st.markdown("# 💡 WHAT IF?")
     st.caption("ENGINEERING DECISION PLATFORM")
+
+    st.markdown("""
+    <p style="
+        color: #24C6B5;
+        font-size: 10px;
+        margin-top: -12px;
+        margin-bottom: 0px;
+    ">
+        Created by Engineer Wiam
+    </p>
+    """, unsafe_allow_html=True)
 
 with tagline_col:
     st.markdown(
