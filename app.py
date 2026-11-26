@@ -351,9 +351,16 @@ if "navigation" not in st.session_state:
 if "go_to_analysis" not in st.session_state:
     st.session_state.go_to_analysis = False
 
+if "go_to_results" not in st.session_state:
+    st.session_state.go_to_results = False
+
 if st.session_state.go_to_analysis:
     st.session_state.navigation = "New Analysis"
     st.session_state.go_to_analysis = False
+
+if st.session_state.go_to_results:
+    st.session_state.navigation = "Results"
+    st.session_state.go_to_results = False
 
 page = st.sidebar.radio(
     "NAVIGATION",
@@ -363,7 +370,6 @@ page = st.sidebar.radio(
 
 st.sidebar.divider()
 st.sidebar.caption("WHAT IF? | Decision Support")
-
 
 # -------------------------
 # HOME
@@ -609,10 +615,10 @@ elif page == "New Analysis":
                         "rejected": tested - len(feasible)
                     }
 
-                    st.success(
-                        "Analysis completed successfully. "
-                        "Open Results to view the recommendation."
-                    )
+                    st.success("Analysis completed successfully!")
+
+                    st.session_state.go_to_results = True
+                    st.rerun()
 
             except Exception as e:
 
