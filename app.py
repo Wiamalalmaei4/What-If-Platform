@@ -638,6 +638,12 @@ elif page == "Results":
             "Review classroom capacities and lecture schedules."
         )
 
+        st.divider()
+
+        if st.button("Start New Analysis", use_container_width=True):
+            st.session_state.analysis = None
+            st.rerun()
+
     else:
 
         solutions = analysis["feasible"]
@@ -718,6 +724,7 @@ elif page == "Results":
             "The analysis uses the entered data and evaluates "
             "all possible classroom assignments."
         )
+
         st.download_button(
             label="Download PDF Report",
             data=create_pdf_report(analysis),
@@ -726,12 +733,13 @@ elif page == "Results":
             type="primary",
             use_container_width=True
         )
+
         st.divider()
 
-     if st.button("Start New Analysis", use_container_width=True):
-         st.session_state.analysis = None
-         st.rerun()
-
+        if st.button("Start New Analysis", use_container_width=True):
+            st.session_state.analysis = None
+            st.rerun()
+            
 # -------------------------
 # FOOTER
 # -------------------------
