@@ -348,6 +348,13 @@ st.divider()
 if "navigation" not in st.session_state:
     st.session_state.navigation = "Home"
 
+if "go_to_analysis" not in st.session_state:
+    st.session_state.go_to_analysis = False
+
+if st.session_state.go_to_analysis:
+    st.session_state.navigation = "New Analysis"
+    st.session_state.go_to_analysis = False
+
 page = st.sidebar.radio(
     "NAVIGATION",
     ["Home", "New Analysis", "Results"],
@@ -401,9 +408,10 @@ if page == "Home":
 
     st.write("**Ready to evaluate a decision?**")
 
-    if st.button("Start New Analysis", type="primary"):
-        st.session_state.analysis = None
-        st.rerun()
+   if st.button("Start New Analysis", type="primary"):
+      st.session_state.analysis = None
+      st.session_state.go_to_analysis = True
+      st.rerun()
         
 # -------------------------
 # NEW ANALYSIS
