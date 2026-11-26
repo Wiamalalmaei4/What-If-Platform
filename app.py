@@ -347,7 +347,8 @@ st.divider()
 
 page = st.sidebar.radio(
     "NAVIGATION",
-    ["Home", "New Analysis", "Results"]
+    ["Home", "New Analysis", "Results"],
+    key="navigation"
 )
 
 st.sidebar.divider()
@@ -397,10 +398,10 @@ if page == "Home":
 
     st.write("**Ready to evaluate a decision?**")
 
-    if st.button("Start New Analysis", type="primary"):
-        st.session_state.analysis = None
-        st.rerun()
-
+   if st.button("Start New Analysis", type="primary"):
+       st.session_state.analysis = None
+       st.session_state.navigation = "New Analysis"
+       st.rerun()
 # -------------------------
 # NEW ANALYSIS
 # -------------------------
@@ -600,6 +601,9 @@ elif page == "New Analysis":
                         "Analysis completed successfully. "
                         "Open Results to view the recommendation."
                     )
+                    if st.button("View Results", type="primary", use_container_width=True):
+                        st.session_state.navigation = "Results"
+                        st.rerun()
 
             except Exception as e:
 
@@ -722,6 +726,13 @@ elif page == "Results":
             type="primary",
             use_container_width=True
         )
+        st.divider()
+
+if st.button("Start New Analysis", use_container_width=True):
+    st.session_state.analysis = None
+    st.session_state.navigation = "New Analysis"
+    st.rerun()
+
 # -------------------------
 # FOOTER
 # -------------------------
