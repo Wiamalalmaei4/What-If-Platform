@@ -364,6 +364,7 @@ page = st.sidebar.radio(
 st.sidebar.divider()
 st.sidebar.caption("WHAT IF? | Decision Support")
 
+
 # -------------------------
 # HOME
 # -------------------------
@@ -408,10 +409,10 @@ if page == "Home":
 
     st.write("**Ready to evaluate a decision?**")
 
- if st.button("Start New Analysis", type="primary"):
-      st.session_state.analysis = None
-      st.session_state.go_to_analysis = True
-      st.rerun()
+    if st.button("Start New Analysis", type="primary"):
+        st.session_state.analysis = None
+        st.session_state.go_to_analysis = True
+        st.rerun()
         
 # -------------------------
 # NEW ANALYSIS
