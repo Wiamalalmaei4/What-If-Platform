@@ -323,7 +323,7 @@ with logo_col:
     st.markdown("# 💡 WHAT IF?")
     st.caption("ENGINEERING DECISION PLATFORM")
     st.markdown(
-        '<p style="color:#24C6B5;font-size:10px;margin-top:-12px;">developed by Engineer Wiam</p>',
+        '<p style="color:#24C6B5;font-size:10px;margin-top:-12px;">developed by Eng. Wiam Alalmaei </p>',
         unsafe_allow_html=True
     )
 
